@@ -5,9 +5,13 @@ let brickCols = 10;
 let brickWidth, brickHeight;
 let winMessageTimeout;
 let showWinMessage = false;
+let originalWidth = 800;
+let originalHeight = 600;
+let scaleFactor;
 
 function setup() {
-  createCanvas(800, 600);
+  scaleFactor = min(windowWidth / originalWidth, windowHeight / originalHeight);
+  createCanvas(originalWidth * scaleFactor, originalHeight * scaleFactor);
   paddle = new Paddle();
   ball = new Ball();
   setupBricks();
@@ -23,12 +27,17 @@ function setup() {
 
 function setupBricks() {
   brickWidth = width / brickCols;
-  brickHeight = 20;
+  brickHeight = height * 0.03;
 
   for (let i = 0; i < brickRows; i++) {
     for (let j = 0; j < brickCols; j++) {
       bricks.push(
-        new Brick(j * brickWidth, i * brickHeight + 50, brickWidth, brickHeight)
+        new Brick(
+          j * brickWidth,
+          i * brickHeight + height * 0.08,
+          brickWidth,
+          brickHeight
+        )
       );
     }
   }
@@ -83,14 +92,14 @@ function draw() {
 
 class Paddle {
   constructor() {
-    this.width = 100;
-    this.height = 10;
+    this.width = originalWidth * 0.125 * scaleFactor;
+    this.height = originalHeight * 0.015 * scaleFactor;
     this.x = (width - this.width) / 2;
-    this.y = height - 30;
+    this.y = height - height * 0.05;
   }
 
   move(x) {
-    this.x = x - this.width / 2;
+    this.x = constrain(x - this.width / 2, 0, width - this.width);
   }
 
   getBounceAngle(ball) {
@@ -109,10 +118,10 @@ class Paddle {
 
 class Ball {
   constructor() {
-    this.radius = 10;
-    this.pos = createVector(width / 2, height / 2);
-    this.speed = 10;
-    this.vel = p5.Vector.random2D().mult(this.speed);
+    this.radius = originalWidth * 0.0125 * scaleFactor;
+    this.pos = createVector(width / 2, paddle.y - this.radius * 2);
+    this.speed = originalWidth * 0.0125 * scaleFactor;
+    this.vel = createVector(0, -1).mult(this.speed);
   }
 
   update() {
@@ -126,9 +135,9 @@ class Ball {
     if (this.pos.y < this.radius) {
       this.vel.y *= -1;
     }
-    if (this.pos.y > height) {
-      this.pos.set(width / 2, height / 2);
-      this.vel = p5.Vector.random2D().mult(this.speed);
+    if (this.pos.y > height + this.radius) {
+      this.pos.set(width / 2, paddle.y - this.radius * 2);
+      this.vel = createVector(0, -1).mult(this.speed);
     }
   }
 
